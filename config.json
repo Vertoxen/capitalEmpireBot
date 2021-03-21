@@ -1,0 +1,11 @@
+{
+  "version": "1.0",
+  "balance": 100,
+  "company-name": "None",
+  "class": "None",
+  "earn": 250,
+  "earn-second": 10,
+  "earn-multiplier": 1,
+  "gems": 0,
+  "rebirths": 0
+}
