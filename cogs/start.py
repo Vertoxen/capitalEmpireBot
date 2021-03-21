@@ -8,8 +8,8 @@ import asyncio
 from discord.ext import commands
 from motor.motor_asyncio import AsyncIOMotorClient
 
-with open('/home/yaminahmed/Python/Captial-Empire/config.json') as f:
-    json_file = json.load(f)
+with open('/home/yaminahmed/Python/Captial-Empire/config.json') as fe:
+    json_file = json.load(fe)
 
 cluster = AsyncIOMotorClient(
     "mongodb+srv://test:omegamemes567@testcluster.tme6j.mongodb.net/myFirstDatabase?retryWrites=true&w=majority")

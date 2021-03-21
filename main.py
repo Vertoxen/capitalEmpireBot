@@ -6,8 +6,8 @@ import json
 from discord.ext import commands
 from itertools import cycle
 
-with open('/home/yaminahmed/Python/Captial-Empire/config.json') as f:
-    json_file = json.load(f)
+with open('/home/yaminahmed/Python/Captial-Empire/config.json') as fe:
+    json_file = json.load(fe)
 
 intents = discord.Intents.all()
 client = commands.Bot(command_prefix="ce!", intents=intents)
