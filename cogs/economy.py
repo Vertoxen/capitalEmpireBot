@@ -297,6 +297,131 @@ class Economy(commands.Cog):
 
                     return
 
+    @commands.command(aliases = ["give", "transfer"])
+    async def pay(self, ctx, other: discord.Member = None, amount: int = None):
+        FOOTER = random.choice(FOOTERS)
+
+        if other is None:
+            em = discord.Embed(
+                title = "Error!",
+                description = "Please mention the user you are going to pay!",
+                color = discord.Colour.red()
+            )
+
+            em.set_footer(text = FOOTER)
+
+            await ctx.send(embed=em)
+            return
+
+        if amount is None:
+            em = discord.Embed(
+                title = "Error!",
+                description = "Please mention how much you are going to pay to the user!",
+                color = discord.Colour.red()
+            )
+
+            em.set_footer(text = FOOTER)
+
+            await ctx.send(embed=em)
+            return
+
+        else:
+            USER_ID = ctx.author.id
+            OTHER_ID = other.id
+
+            levelCap = [-5, -4, -3, -2, -1, 0, 1, 2, 3, 4, 5]
+
+            userResults = await cursor.find_one({"user_id": USER_ID})
+            otherResults = await cursor.find_one({"user_id": OTHER_ID})
+
+            userLevel = userResults['level']
+            otherLevel = otherResults['level']
+
+            levelGap = userLevel - otherLevel
+
+            if userResults is None:
+                em = discord.Embed(
+                    title="Error!",
+                    description="You do not have an existing profile!\n\nTry doing `ce!create`!",
+                    color=discord.Colour.red()
+                )
+
+                em.set_footer(text=FOOTER)
+
+                await ctx.send(embed=em)
+                return
+
+            if otherResults is None:
+                em = discord.Embed(
+                    title="Error!",
+                    description="The user you are trying to pay does not have an existing profile!",
+                    color=discord.Colour.red()
+                )
+
+                em.set_footer(text=FOOTER)
+
+                await ctx.send(embed=em)
+                return
+
+            if levelGap not in levelCap:
+                if levelGap < 0:
+                    em = discord.Embed(
+                        title = "Error!",
+                        description = "The user you are trying to pay has a much higher level than you!",
+                        color = discord.Colour.red()
+                    )
+
+                    em.set_footer(text = FOOTER)
+
+                    await ctx.send(embed=em)
+                    return
+
+                else:
+                    em = discord.Embed(
+                        title = "Error!",
+                        description = "The user you are trying to pay has a much lower level than you!",
+                        color = discord.Colour.red()
+                    )
+
+                    em.set_footer(text = FOOTER)
+
+                    await ctx.send(embed=em)
+                    return
+
+            else:
+                userBal = userResults['balance']
+                otherBal = otherResults['balance']
+
+                if userBal < amount:
+                    em = discord.Embed(
+                        title = "Error!",
+                        description = "You are trying to give more money than you already have!",
+                        color = discord.Colour.red()
+                    )
+
+                    em.set_footer(text = FOOTER)
+
+                    await ctx.send(embed=em)
+                    return
+
+                else:
+                    remove = userBal - amount
+                    addup = otherBal + amount
+
+                    await cursor.update_one({"user_id": USER_ID}, {"$set": {"balance": remove}})
+                    await cursor.update_one({"user_id": OTHER_ID}, {"$set": {"balance": addup}})
+
+                    em = discord.Embed(
+                        title = "Successful!",
+                        description = f"You have paid **{other}** {cash_emoji} {amount} !",
+                        color = discord.Colour.green()
+                    )
+
+                    em.set_footer(text = FOOTER)
+
+                    await ctx.send(embed=em)
+                    return\
+
 def setup(bot):
     bot.add_cog(Economy(bot))
     print("( / ) -- Economy is ready! -- ( / )")
