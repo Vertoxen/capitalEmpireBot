@@ -26,14 +26,15 @@ class Start(commands.Cog):
     @commands.command()
     async def create(self, ctx):
         USER_ID = ctx.author.id
-        USER_NAME = str(ctx.author)
+        USER_NAME = str(ctx.author.name)
+        USER_DISCRIMINATOR = str(ctx.author.discriminator)
 
         results = await cursor.find_one({"user_id": USER_ID})
 
         if results is None:
             FOOTER = random.choice(FOOTERS)
 
-            ins = {"user_id": USER_ID, "user_name": USER_NAME, "money": json_file["money"],
+            ins = {"user_id": USER_ID, "user_name": USER_NAME, "user_discriminator": USER_DISCRIMINATOR, "money": json_file["money"],
                    "company-name": json_file["company-name"], "class": json_file["class"],
                    "earn": json_file["earn"], "earn-second": json_file["earn-second"],
                    "earn-multiplier": json_file["earn-multiplier"], "gems": json_file["gems"],
@@ -45,7 +46,7 @@ class Start(commands.Cog):
                    "thrift-shop": json_file["thrift-shop"], "thrift-shop-price": json_file["thrift-shop-price"],
                    "thrift-shop-earn": json_file["thrift-shop-earn"], "thrift-shop-manager": json_file["thrift-shop-manager"],
                    "thrift-shop-manager-price": json_file["thrift-shop-manager-price"], "newspaper-company": json_file["newspaper-company"],
-                   "newspaper-comany-earn": json_file["newspaper-comany-earn"], "newspaper-company-price": json_file["newspaper-company-price"],
+                   "newspaper-company-earn": json_file["newspaper-company-earn"], "newspaper-company-price": json_file["newspaper-company-price"],
                    "newspaper-company-manager": json_file["newspaper-company-manager"], "newspaper-company-manager-price": json_file["newspaper-company-manager-price"],
                    "donut-shop": json_file["donut-shop"], "donut-shop-price": json_file["donut-shop-price"], "donut-shop-earn": json_file["donut-shop-earn"],
                    "donut-shop-manager": json_file["donut-shop-manager"], "donut-shop-manager-price": json_file["donut-shop-manager-price"],

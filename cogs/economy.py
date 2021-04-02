@@ -4,8 +4,10 @@ import threading
 import json
 import random
 import asyncio
+import DiscordUtils
 
 from discord.ext import commands
+from discord.ext.commands import BucketType
 from motor.motor_asyncio import AsyncIOMotorClient
 
 with open('/home/yaminahmed/Python/Captial-Empire/config.json') as fe:
@@ -22,6 +24,8 @@ FOOTERS = [f"Capital Empire v{json_file['version']}",
 cash_emoji = "<:cash:823714411444437053>"
 gem_emoji = "<:gem:823716508395110401>"
 tick_emoji = "<:tick_sign:800685194930552853>"
+shop_emoji = "<:shop:827590803718144091>"
+manager_emoji = "<:manager:827590850808774736>"
 
 class Economy(commands.Cog):
     def __init__(self, bot):
@@ -34,7 +38,7 @@ class Economy(commands.Cog):
         resultCheck = await cursor.find_one({"user_id": USER_ID})
 
         if resultCheck is None:
-            return
+            pass
 
         else:
             results = await cursor.find_one({"user_id": USER_ID})
@@ -287,7 +291,7 @@ class Economy(commands.Cog):
                 else:
                     emError = discord.Embed(
                         title = "Error!",
-                        description =" Operation cancelled due to **Invalid Reaction**! Please react with the emojis provided next time!",
+                        description ="Operation cancelled due to **Invalid Reaction**! Please react with the emojis provided next time!",
                         color = discord.Colour.red()
                     )
 
@@ -420,7 +424,276 @@ class Economy(commands.Cog):
                     em.set_footer(text = FOOTER)
 
                     await ctx.send(embed=em)
-                    return\
+                    return
+
+    @commands.command(aliases = ["steal"])
+    @commands.cooldown(1, 60, BucketType.user)
+    async def rob(self, ctx, other: discord.Member = None):
+        FOOTER = random.choice(FOOTERS)
+
+        if other is None:
+            em = discord.Embed(
+                title="Error!",
+                description="Please mention the user you are going to rob!",
+                color=discord.Colour.red()
+            )
+
+            em.set_footer(text=FOOTER)
+
+            await ctx.send(embed=em)
+            return
+
+        else:
+            USER_ID = ctx.author.id
+            OTHER_ID = other.id
+
+            userResults = await cursor.find_one({"user_id": USER_ID})
+            otherResults = await cursor.find_one({"user_id": OTHER_ID})
+
+            userLevel = userResults['level']
+            otherLevel = otherResults['level']
+
+            if userResults is None:
+                em = discord.Embed(
+                    title="Error!",
+                    description="You do not have an existing profile!\n\nTry doing `ce!create`!",
+                    color=discord.Colour.red()
+                )
+
+                em.set_footer(text=FOOTER)
+
+                await ctx.send(embed=em)
+                return
+
+            if otherResults is None:
+                em = discord.Embed(
+                    title="Error!",
+                    description="The user you are trying to pay does not have an existing profile!",
+                    color=discord.Colour.red()
+                )
+
+                em.set_footer(text=FOOTER)
+
+                await ctx.send(embed=em)
+                return
+
+            if userLevel < 25:
+                em = discord.Embed(
+                    title = "Error!",
+                    description = "You must be at-least in **Level 25** to be able to use this command!",
+                    color = discord.Colour.red()
+                )
+
+                em.set_footer(text = FOOTER)
+
+                await ctx.send(embed=em)
+                return
+
+            if otherLevel < 25:
+                em = discord.Embed(
+                    title = "Error!",
+                    description = "Stop picking on weak prey and rob someone that is in **Level 25** or above!",
+                    color = discord.Colour.red()
+                )
+
+                em.set_footer(text = FOOTER)
+
+                await ctx.send(embed=em)
+                return
+
+            else:
+                probability = random.randint(1, 10)
+
+                if probability == 5:
+                    userBal = userResults['balance']
+                    otherBal = otherResults['balance']
+
+                    addup = round(otherBal / 4.5)
+
+                    userChange = userBal + addup
+                    otherChange = otherBal - addup
+
+                    await cursor.update_one({"user_id": USER_ID}, {"$set": {"balance": userChange}})
+                    await cursor.update_one({"user_id": OTHER_ID}, {"$set": {"balance": otherChange}})
+
+                    em = discord.Embed(
+                        title = "Successful!",
+                        description = f"You stole {cash_emoji} {addup} from **{other}**!",
+                        color = discord.Colour.green()
+                    )
+
+                    em.set_footer(text = FOOTER)
+
+                    await ctx.send(embed=em)
+                    return
+
+                else:
+                    userBal = userResults['balance']
+                    otherBal = otherResults['balance']
+
+                    addup = round(otherBal / 15.5)
+
+                    userChange = userBal - addup
+                    otherChange = otherBal + addup
+
+                    await cursor.update_one({"user_id": USER_ID}, {"$set": {"balance": userChange}})
+                    await cursor.update_one({"user_id": OTHER_ID}, {"$set": {"balance": otherChange}})
+
+                    em = discord.Embed(
+                        title="Failed!",
+                        description=f"You failed and had to pay **{other}** {cash_emoji} {addup} !",
+                        color=discord.Colour.red()
+                    )
+
+                    em.set_footer(text=FOOTER)
+
+                    await ctx.send(embed=em)
+                    return
+
+    @rob.error
+    async def rob_error(self, ctx, error):
+        FOOTER = random.choice(FOOTERS)
+
+        if isinstance(error, commands.CommandOnCooldown):
+            em = discord.Embed(title=f"Error!",
+                               description=f"Please wait `{error.retry_after:.2f}s` before executing this command again!",
+                               color=0xff0040)
+
+            em.set_footer(text=f"{FOOTER}")
+            await ctx.send(embed=em)
+            return
+
+    @commands.command(aliases = ["store"])
+    async def shop(self, ctx):
+        USER_ID = ctx.author.id
+        FOOTER = random.choice(FOOTERS)
+
+        results = await cursor.find_one({"user_id": USER_ID})
+
+        if results is None:
+            em = discord.Embed(
+                title="Error!",
+                description="You do not have an existing profile!\n\nTry doing `ce!create`!",
+                color=0xffffff
+            )
+
+            em.set_footer(text=FOOTER)
+
+            await ctx.send(embed=em)
+            return
+        
+        else:
+            emStart = discord.Embed(
+                title = "Shop",
+                color = discord.Colour.orange()
+            )
+
+            emStart.add_field(
+                name = "Stores",
+                value = f"React with {shop_emoji} to get the **Store** list!",
+                inline = False
+            )
+
+            emStart.add_field(
+                name = "Managers",
+                value = f"React with {manager_emoji} to get the **Manager** list!",
+                inline = False
+            )
+
+            emStart.set_footer(text = FOOTER)
+
+            message = await ctx.send(embed=emStart)
+
+            await message.add_reaction(shop_emoji)
+            await message.add_reaction(manager_emoji)
+
+            try:
+                reaction, user = await self.bot.wait_for('reaction_add', check=lambda reaction, user: user == ctx.author and reaction.message.channel == ctx.channel)
+
+            except:
+                pass
+
+            else:
+                if str(reaction.emoji) == shop_emoji:
+                    em = discord.Embed(
+                        title = "Store Shop!",
+                        color = discord.Colour.green()
+                    )
+
+                    em.add_field(
+                        name = "Lemon Stand",
+                        value = f"`N/A`\n**Bought:** `{results['lemon-stand']}`\n**Earn:** `N/A`\n**Price:** `N/A`",
+                        inline = False
+                    )
+
+                    em.add_field(
+                        name = "Thrift Shop",
+                        value = f"`ce!buy store thrift-shop`\n**Bought:** `{results['thrift-shop']}`\n**Earn:** {cash_emoji} `+{results['thrift-shop-earn']}`\n**Price:** {cash_emoji} `{results['thrift-shop-price']}`",
+                        inline = False
+                    )
+
+                    em.add_field(
+                        name = "Newspaper Company",
+                        value = f"`ce!buy store newspaper-company`\n**Bought:** `{results['newspaper-company']}`\n**Earn:** {cash_emoji} `+{results['newspaper-company-earn']}`\n**Price:** {cash_emoji} `{results['newspaper-company-price']}`",
+                        inline = False
+                    )
+
+                    em.add_field(
+                        name = "Donut Shop",
+                        value = f"`ce!buy store donut-shop`\n**Bought:** `{results['donut-shop']}`\n**Earn:** {cash_emoji} `+{results['donut-shop-earn']}`\n**Price:** {cash_emoji} `{results['donut-shop-price']}`",
+                        inline = False
+                    )
+
+                    em.add_field(
+                        name = "Retail Store",
+                        value = f"`ce!buy store retail-store`\n**Bought:** `{results['retail-store']}`\n**Earn:** {cash_emoji} `+{results['retail-store-earn']}`\n**Price:** {cash_emoji} `{results['retail-store-price']}`",
+                        inline = False
+                    )
+
+                    em.set_footer(text = FOOTER)
+
+                    em2 = discord.Embed(
+                        title = "Store Shop!",
+                        color = discord.Colour.green()
+                    )
+
+                    em2.add_field(
+                        name = "Fast Food Chain",
+                        value = f"`ce!buy store fast-food-chain`\n**Bought:** `{results['fast-food-chain']}`\n**Earn:** {cash_emoji} `+{results['fast-food-chain-earn']}`\n**Price:** {cash_emoji} `{results['fast-food-chain-price']}`",
+                        inline = False
+                    )
+
+                    em2.set_footer(text = FOOTER)
+
+                    paginator = DiscordUtils.Pagination.CustomEmbedPaginator(ctx)
+
+                    paginator.add_reaction('⏪', "back")
+                    paginator.add_reaction('⏩', "next")
+
+                    embeds = [em, em2]
+
+                    await paginator.run(embeds)
+
+                if str(reaction.emoji) == manager_emoji:
+                    pass
+
+                if str(reaction.emoji) == "⏪":
+                    pass
+
+                if str(reaction.emoji) == "⏩":
+                    pass
+
+                else:
+                    em = discord.Embed(
+                        title = "Error!",
+                        description = "Operation cancelled due to **Invalid Reaction**! Please react with the emojis provided next time!",
+                        color = discord.Colour.red()
+                    )
+
+                    em.set_footer(text = FOOTER)
+
+                    await ctx.send(embed=em)
+                    return
 
 def setup(bot):
     bot.add_cog(Economy(bot))
