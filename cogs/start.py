@@ -11,7 +11,7 @@ with open('/home/yaminahmed/Python/Captial-Empire/config.json') as fe:
     json_file = json.load(fe)
 
 cluster = motor.motor_asyncio.AsyncIOMotorClient(
-    "mongodb://vertoxen:omegamemes567@de1.centronodes.com:25930/?authMechanism=DEFAULT&authSource=economy&retryWrites=true&w=majority")
+    "mongodb://")
 db = cluster['economy']
 cursor = db.economy
 
