@@ -12,8 +12,8 @@ with open('/home/yaminahmed/Python/Captial-Empire/config.json') as fe:
 intents = discord.Intents.all()
 client = commands.Bot(command_prefix="ce!", intents=intents)
 
-TOKEN = "ODIyNjMyMjczMjc4MTQwNDY2.YFVGAQ.sNs3Za9usObI6SZtbKmdvqitWiE"
-INVITE = "https://discord.com/api/oauth2/authorize?client_id=822632273278140466&permissions=201714753&scope=bot"
+TOKEN = "O"
+INVITE = "https://discord.com/api/oauth2/authorize?"
 STATUS = [f"ce!help | Capital Empire v{json_file['version']}", f"with Users! | Capital Empire v{json_file['version']}"]
 
 os.chdir(r"/home/yaminahmed/Python/Captial-Empire")
